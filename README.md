@@ -8,8 +8,8 @@ L'outil est compatible Windows et GNU/Linux.
 
 ScreenShot Windows :
 
-<img width="1351" height="676" alt="1" src="https://github.com/user-attachments/assets/029562c3-1a0b-4b2a-8a86-ce3c6ddd39ba" />
+<img width="500" height="300" alt="1" src="https://github.com/user-attachments/assets/08c4a26b-450b-4da0-9c41-b7b07d6d80b4" />
 
-<img width="1618" height="551" alt="2" src="https://github.com/user-attachments/assets/6339ceeb-7f09-40ff-94e7-d0d272b7ade0" />
+<img width="500" height="300" alt="2" src="https://github.com/user-attachments/assets/b147c9d2-f3c6-494a-8b0c-3121f1f58de3" />
 
 **Attention : les droits administrateur (et root) sont obligatoires pour un dump valide.**
