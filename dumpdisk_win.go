@@ -96,10 +96,8 @@ func getDiskSize(path string) (uint64, uint32, error) {
 		return 0, 0, err
 	}
 	defer syscall.CloseHandle(handle)
-
 	var bytesReturned uint32
 	var geom diskGeometryEx
-
 	err = syscall.DeviceIoControl(
 		handle,
 		IOCTL_DISK_GET_DRIVE_GEOMETRY_EX,
@@ -113,12 +111,10 @@ func getDiskSize(path string) (uint64, uint32, error) {
 	if err != nil {
 		return 0, 0, err
 	}
-
 	sec := geom.Geometry.BytesPerSector
 	if sec == 0 {
 		sec = 512
 	}
-
 	return geom.DiskSize, sec, nil
 }
 
@@ -134,28 +130,22 @@ func listDisks() []DiskInfo {
 	return disks
 }
 
-// cloneDisk ne change pas
 func cloneDisk(source string, destination string, diskSize int64, sectorSize int64) error {
 	handle, err := openDisk(source)
-
 	if err != nil {
 		return fmt.Errorf("Unable to open the disc : %v", err)
 	}
 	defer syscall.CloseHandle(handle)
-
 	out, err := os.Create(destination)
 	if err != nil {
 		return fmt.Errorf("File creation error : %v", err)
 	}
 	defer out.Close()
-
 	block := make([]byte, 1024*1024)
 	var offset int64 = 0
-
 	start := time.Now()
 	lastTime := time.Now()
 	var bytesSinceLast int64 = 0
-
 	for offset < diskSize {
 
 		if offset%sectorSize != 0 {
@@ -181,14 +171,11 @@ func cloneDisk(source string, destination string, diskSize int64, sectorSize int
 			fmt.Printf("\rProgress : %.1f%% | Unreadable sector", float64(offset)*100/float64(diskSize))
 			continue
 		}
-
 		out.Write(block[:bytesRead])
 		offset += int64(bytesRead)
-
 		// --- CALCUL DE LA VITESSE ---
 		bytesSinceLast += int64(bytesRead)
 		elapsed := time.Since(lastTime).Seconds()
-
 		var speedStr string
 		if elapsed >= 0.5 {
 			speedMB := float64(bytesSinceLast) / (1024 * 1024) / elapsed
@@ -198,17 +185,12 @@ func cloneDisk(source string, destination string, diskSize int64, sectorSize int
 		} else {
 			speedStr = ""
 		}
-
 		fmt.Printf("\rProgress : %.1f%% | Speed: %s",
 			   float64(offset)*100/float64(diskSize), speedStr)
-
-
 	}
-
 	fmt.Printf("\nCloning done in %s\n", time.Since(start))
 	return nil
 }
-
 
 // calcule le SHA256 d’un fichier ou disque
 func computeSHA256(path string, size int64, sectorSize int64) (string, error) {
@@ -217,26 +199,21 @@ func computeSHA256(path string, size int64, sectorSize int64) (string, error) {
 		return "", fmt.Errorf("Unable to open %s: %v", path, err)
 	}
 	defer syscall.CloseHandle(handle)
-
 	h := sha256.New()
 	block := make([]byte, 1024*1024)
 	var offset int64 = 0
-
 	for offset < size {
 		if offset%sectorSize != 0 {
 			offset = (offset / sectorSize) * sectorSize
 		}
-
 		toRead := len(block)
 		if int64(toRead) > size-offset {
 			toRead = int(size - offset)
 		}
-
 		err := setFilePointerEx(handle, offset)
 		if err != nil {
 			return "", fmt.Errorf("Error seek : %v", err)
 		}
-
 		var bytesRead uint32
 		err = syscall.ReadFile(handle, block[:toRead], &bytesRead, nil)
 		if err != nil && bytesRead == 0 {
@@ -245,47 +222,38 @@ func computeSHA256(path string, size int64, sectorSize int64) (string, error) {
 			offset += sectorSize
 			continue
 		}
-
 		h.Write(block[:bytesRead])
 		offset += int64(bytesRead)
 	}
-
 	return fmt.Sprintf("%x", h.Sum(nil)), nil
 }
 
-// calcule SHA256 pour un fichier normal
+// calcule SHA256 d'un fichier dump
 func computeSHA256File(filePath string) (string, error) {
 	f, err := os.Open(filePath)
 	if err != nil {
 		return "", err
 	}
 	defer f.Close()
-
 	h := sha256.New()
 	if _, err := io.Copy(h, f); err != nil {
 		return "", err
 	}
-
 	return fmt.Sprintf("%x", h.Sum(nil)), nil
 }
 
 func main() {
 	fmt.Println("ShadowBytes - DumpDisk\n")
-
-	now := time.Now() // heure et date actuelles
-	// Formater l'heure HH:MM:SS
+	now := time.Now() 
 	hour := now.Format("15:04:05")
-	// Formater la date JJ:MM:AAAA
 	date := now.Format("02:01:2006")
 	fmt.Println("Starting : [" + hour + "] / [" + date +"]")
-
-
+	
 	ifArg := flag.String("if", "", "Source disk")
 	ofArg := flag.String("of", "", "Target raw file")
 	listArg := flag.Bool("list", false, "Show available disk")
 	shaArg := flag.Bool("sha256", false, "Calculate SHA256 to verify the dump")
 	flag.Parse()
-
 	// Liste des disques
 	if *listArg {
 		disks := listDisks()
@@ -299,20 +267,17 @@ func main() {
 		}
 		return
 	}
-
 	// Aucun argument pour clonage -> HELP
 	if *ifArg == "" || *ofArg == "" {
 		printHelp()
 		return
 	}
-
 	// Taille du disque
 	size, sectorSize, err := getDiskSize(*ifArg)
 	if err != nil {
 		fmt.Println("Error: Unable to read disk size :", err)
 		return
 	}
-
 	// Calcul SHA256 avant dump si demandé
 	var srcHash string
 	if *shaArg {
@@ -324,14 +289,12 @@ func main() {
 		}
 		fmt.Println("SHA256 source :", srcHash)
 	}
-
 	// Clonage
 	err = cloneDisk(*ifArg, *ofArg, int64(size), int64(sectorSize))
 	if err != nil {
 		fmt.Println("Error :", err)
 		return
 	}
-
 	// Vérification SHA256 du fichier dumpé
 	if *shaArg {
 		fmt.Println("Calculating the SHA256 hash of the dumped file...")
@@ -341,7 +304,6 @@ func main() {
 			return
 		}
 		fmt.Println("SHA256 file :", dstHash)
-
 		if srcHash == dstHash {
 			fmt.Println("✅ Verification successful: the dump is identical to the source disk")
 		} else {
