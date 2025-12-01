@@ -10,7 +10,7 @@ ScreenShot Windows :
 
 <img width="500" height="300" alt="1" src="https://github.com/user-attachments/assets/08c4a26b-450b-4da0-9c41-b7b07d6d80b4" />
 
-<img width="500" height="300" alt="2" src="https://github.com/user-attachments/assets/b147c9d2-f3c6-494a-8b0c-3121f1f58de3" />
+<img width="600" height="400" alt="2" src="https://github.com/user-attachments/assets/b147c9d2-f3c6-494a-8b0c-3121f1f58de3" />
 
 **Attention : les droits administrateur (et root) sont obligatoires pour un dump valide.**
 
